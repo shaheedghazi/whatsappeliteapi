@@ -1,0 +1,465 @@
+{
+  "info": {
+    "name": "Baileys Elite WhatsApp API",
+    "description": "Complete WhatsApp Web API using baileys-elite with all features including messaging, newsletters, interactive buttons, and more.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Connection Management",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check if the API server is running and WhatsApp connection status"
+          }
+        },
+        {
+          "name": "Connection Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "status"]
+            },
+            "description": "Get detailed WhatsApp connection status"
+          }
+        },
+        {
+          "name": "Get QR Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/qr",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "qr"]
+            },
+            "description": "Get QR code for WhatsApp Web authentication"
+          }
+        },
+        {
+          "name": "Request Pairing Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"customCode\": \"BAILEYS1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pair",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pair"]
+            },
+            "description": "Request a pairing code for phone number authentication"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logout"]
+            },
+            "description": "Logout from WhatsApp Web"
+          }
+        }
+      ],
+      "description": "Endpoints for managing WhatsApp connection"
+    },
+    {
+      "name": "Messaging",
+      "item": [
+        {
+          "name": "Send Text Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hello from Baileys Elite API!\",\n  \"ai\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/text",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "text"]
+            },
+            "description": "Send a text message. Set 'ai' to true to show AI icon."
+          }
+        },
+        {
+          "name": "Send AI Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hello! I'm your AI assistant.\",\n  \"ai\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/text",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "text"]
+            },
+            "description": "Send a text message with AI icon"
+          }
+        },
+        {
+          "name": "Send Media (Form Data)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "to",
+                  "value": "1234567890",
+                  "type": "text"
+                },
+                {
+                  "key": "type",
+                  "value": "image",
+                  "type": "text",
+                  "description": "image, video, audio, or document"
+                },
+                {
+                  "key": "caption",
+                  "value": "Check out this image!",
+                  "type": "text"
+                },
+                {
+                  "key": "media",
+                  "type": "file",
+                  "description": "Select your media file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/media",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "media"]
+            },
+            "description": "Send media files (image, video, audio, document)"
+          }
+        }
+      ],
+      "description": "Basic messaging endpoints"
+    },
+    {
+      "name": "Interactive Messages",
+      "item": [
+        {
+          "name": "Send Button Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hi it's button message\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/buttons",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "buttons"]
+            },
+            "description": "Send message with buttons"
+          }
+        },
+        {
+          "name": "Send Button Message with Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hi it's button message with image\",\n  \"footer\": \"Hello World\",\n  \"image\": \"https://example.com/image.jpg\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/buttons",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "buttons"]
+            },
+            "description": "Send button message with image header"
+          }
+        },
+        {
+          "name": "Send Interactive Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hello World!\",\n  \"title\": \"This is the title\",\n  \"footer\": \"This is the footer\",\n  \"interactiveButtons\": [\n    {\n      \"name\": \"quick_reply\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Quick Reply\\\", \\\"id\\\": \\\"ID\\\"}\"\n    },\n    {\n      \"name\": \"cta_url\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Tap Here!\\\", \\\"url\\\": \\\"https://www.example.com/\\\"}\"\n    },\n    {\n      \"name\": \"cta_copy\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Copy Code\\\", \\\"id\\\": \\\"12345\\\", \\\"copy_code\\\": \\\"12345\\\"}\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/interactive",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "interactive"]
+            },
+            "description": "Send advanced interactive message with quick reply, URL, and copy buttons"
+          }
+        },
+        {
+          "name": "Send Interactive Message with Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Check out this amazing photo!\",\n  \"title\": \"Photo Showcase\",\n  \"footer\": \"Tap a button below\",\n  \"image\": \"https://example.com/image.jpg\",\n  \"caption\": \"Check out this amazing photo!\",\n  \"interactiveButtons\": [\n    {\n      \"name\": \"quick_reply\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Quick Reply\\\", \\\"id\\\": \\\"ID\\\"}\"\n    },\n    {\n      \"name\": \"cta_url\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Visit Website\\\", \\\"url\\\": \\\"https://www.example.com/\\\"}\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/interactive",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "interactive"]
+            },
+            "description": "Send interactive message with image"
+          }
+        }
+      ],
+      "description": "Interactive messaging with buttons and rich features"
+    },
+    {
+      "name": "Newsletter Management",
+      "item": [
+        {
+          "name": "Get Newsletter Metadata (by JID)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/jid/abcd@newsletter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "jid", "abcd@newsletter"]
+            },
+            "description": "Get newsletter metadata by JID"
+          }
+        },
+        {
+          "name": "Get Newsletter Metadata (by Invite)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/invite/xxxxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "invite", "xxxxx"]
+            },
+            "description": "Get newsletter metadata by invite code"
+          }
+        },
+        {
+          "name": "Create Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Newsletter\",\n  \"description\": \"This is my awesome newsletter\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "create"]
+            },
+            "description": "Create a new newsletter"
+          }
+        },
+        {
+          "name": "Update Newsletter Description",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated newsletter description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter/description",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter", "description"]
+            },
+            "description": "Update newsletter description"
+          }
+        },
+        {
+          "name": "Update Newsletter Name",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Newsletter Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter/name",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter", "name"]
+            },
+            "description": "Update newsletter name"
+          }
+        },
+        {
+          "name": "Follow Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter", "follow"]
+            },
+            "description": "Follow a newsletter"
+          }
+        },
+        {
+          "name": "Unfollow Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter/unfollow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter", "unfollow"]
+            },
+            "description": "Unfollow a newsletter"
+          }
+        },
+        {
+          "name": "Mute Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter/mute",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter", "mute"]
+            },
+            "description": "Mute newsletter notifications"
+          }
+        },
+        {
+          "name": "Unmute Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter/unmute",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter", "unmute"]
+            },
+            "description": "Unmute newsletter notifications"
+          }
+        },
+        {
+          "name": "React to Newsletter Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageId\": \"175\",\n  \"reaction\": \"🥳\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter/react",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter", "react"]
+            },
+            "description": "React to a newsletter message. Get message ID from newsletter URL."
+          }
+        },
+        {
+          "name": "Delete Newsletter",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/newsletter/abcd@newsletter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "newsletter", "abcd@newsletter"]
+            },
+            "description": "Delete a newsletter"
+          }
+        }
+      ],
+      "description": "Newsletter management features"
+    }
+  ]
+} 
