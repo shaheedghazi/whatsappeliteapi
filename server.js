@@ -335,106 +335,244 @@ app.post('/api/send/media', upload.single('media'), async (req, res) => {
     }
 });
 
-// Send button message
-app.post('/api/send/buttons', async (req, res) => {
+// Send text button message
+app.post('/api/send/buttons/text', async (req, res) => {
     try {
         if (!isConnected) {
             return res.status(400).json({ error: 'WhatsApp not connected' });
         }
         
-        const { to, text, footer, buttons, headerType = 1, viewOnce = true, image, video } = req.body;
+        const { to, text, footer, buttons, headerType = 1, viewOnce = true, quoted = null } = req.body;
         
-        if (!to || !text || !buttons) {
-            return res.status(400).json({ error: 'Required fields: to, text, buttons' });
+        if (!to || !buttons) {
+            return res.status(400).json({ error: 'Required fields: to, buttons' });
         }
         
         const formattedId = formatWhatsAppId(to);
         
-        let message = {
-            text,
-            footer: footer || '',
+        const buttonMessage = {
+            text: text || "Hi it's button message",
+            footer: footer || 'Hello World',
             buttons,
             headerType,
             viewOnce
         };
         
-        if (image) {
-            message.image = { url: image };
-            message.caption = text;
-            delete message.text;
-        }
+        const result = await sock.sendMessage(formattedId, buttonMessage, { quoted });
         
-        if (video) {
-            message.video = { url: video };
-            message.caption = text;
-            delete message.text;
-        }
-        
-        const result = await sock.sendMessage(formattedId, message);
-        
-        // Log button message sending in terminal
-        console.log(`📤 Button message sent to ${to} with ${buttons.length} buttons`);
+        console.log(`📝 Text button message sent to ${to} with ${buttons.length} buttons`);
         
         res.json({
             success: true,
             messageId: result.key.id,
             to: formattedId,
+            type: 'text_buttons',
             timestamp: new Date().toISOString()
         });
     } catch (error) {
-        logger.error('Send buttons error:', error);
-        res.status(500).json({ error: 'Failed to send button message' });
+        logger.error('Send text buttons error:', error);
+        res.status(500).json({ error: 'Failed to send text button message' });
     }
 });
 
-// Send interactive message
-app.post('/api/send/interactive', async (req, res) => {
+// Send image button message
+app.post('/api/send/buttons/image', async (req, res) => {
     try {
         if (!isConnected) {
             return res.status(400).json({ error: 'WhatsApp not connected' });
         }
         
-        const { to, text, title, footer, interactiveButtons, image, video, caption } = req.body;
+        const { to, image, caption, footer, buttons, headerType = 1, viewOnce = true, quoted = null } = req.body;
         
-        if (!to || !text || !interactiveButtons) {
-            return res.status(400).json({ error: 'Required fields: to, text, interactiveButtons' });
+        if (!to || !image || !buttons) {
+            return res.status(400).json({ error: 'Required fields: to, image, buttons' });
         }
         
         const formattedId = formatWhatsAppId(to);
         
-        let message = {
-            text,
-            title: title || '',
-            footer: footer || '',
-            interactiveButtons
+        const buttonMessage = {
+            image: { url: image },
+            caption: caption || "Hi it's button message with image",
+            footer: footer || 'Hello World',
+            buttons,
+            headerType,
+            viewOnce
         };
         
-        if (image) {
-            message.image = { url: image };
-            message.caption = caption || text;
-            delete message.text;
-        }
+        const result = await sock.sendMessage(formattedId, buttonMessage, { quoted });
         
-        if (video) {
-            message.video = { url: video };
-            message.caption = caption || text;
-            delete message.text;
-        }
-        
-        const result = await sock.sendMessage(formattedId, message);
-        
-        // Log interactive message sending in terminal
-        console.log(`📤 Interactive message sent to ${to} with ${interactiveButtons.length} buttons`);
+        console.log(`🖼️ Image button message sent to ${to} with ${buttons.length} buttons`);
         
         res.json({
             success: true,
             messageId: result.key.id,
             to: formattedId,
+            type: 'image_buttons',
             timestamp: new Date().toISOString()
         });
     } catch (error) {
-        logger.error('Send interactive error:', error);
-        res.status(500).json({ error: 'Failed to send interactive message' });
+        logger.error('Send image buttons error:', error);
+        res.status(500).json({ error: 'Failed to send image button message' });
+    }
+});
+
+// Send video button message
+app.post('/api/send/buttons/video', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, video, caption, footer, buttons, headerType = 1, viewOnce = true, quoted = null } = req.body;
+        
+        if (!to || !video || !buttons) {
+            return res.status(400).json({ error: 'Required fields: to, video, buttons' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const buttonMessage = {
+            video: { url: video },
+            caption: caption || "Hi it's button message with video",
+            footer: footer || 'Hello World',
+            buttons,
+            headerType,
+            viewOnce
+        };
+        
+        const result = await sock.sendMessage(formattedId, buttonMessage, { quoted });
+        
+        console.log(`🎬 Video button message sent to ${to} with ${buttons.length} buttons`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'video_buttons',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send video buttons error:', error);
+        res.status(500).json({ error: 'Failed to send video button message' });
+    }
+});
+
+// Send advanced interactive message
+app.post('/api/send/interactive/advanced', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, text, title, footer, interactiveButtons, quoted = null } = req.body;
+        
+        if (!to || !interactiveButtons) {
+            return res.status(400).json({ error: 'Required fields: to, interactiveButtons' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const interactiveMessage = {
+            text: text || "Hello World!",
+            title: title || 'this is the title',
+            footer: footer || 'this is the footer',
+            interactiveButtons
+        };
+        
+        const result = await sock.sendMessage(formattedId, interactiveMessage, { quoted });
+        
+        console.log(`🔄 Advanced interactive message sent to ${to} with ${interactiveButtons.length} buttons`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'advanced_interactive',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send advanced interactive error:', error);
+        res.status(500).json({ error: 'Failed to send advanced interactive message' });
+    }
+});
+
+// Send rich media interactive message with image
+app.post('/api/send/interactive/image', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, image, caption, title, footer, interactiveButtons, quoted = null } = req.body;
+        
+        if (!to || !image || !interactiveButtons) {
+            return res.status(400).json({ error: 'Required fields: to, image, interactiveButtons' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const interactiveMessage = {
+            image: { url: image },
+            caption: caption || "Check out this amazing photo!",
+            title: title || 'Photo Showcase',
+            footer: footer || 'Tap a button below',
+            interactiveButtons
+        };
+        
+        const result = await sock.sendMessage(formattedId, interactiveMessage, { quoted });
+        
+        console.log(`🖼️ Rich media interactive image message sent to ${to} with ${interactiveButtons.length} buttons`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'rich_media_image_interactive',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send rich media image interactive error:', error);
+        res.status(500).json({ error: 'Failed to send rich media image interactive message' });
+    }
+});
+
+// Send rich media interactive message with video
+app.post('/api/send/interactive/video', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, video, caption, title, footer, interactiveButtons, quoted = null } = req.body;
+        
+        if (!to || !video || !interactiveButtons) {
+            return res.status(400).json({ error: 'Required fields: to, video, interactiveButtons' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const interactiveMessage = {
+            video: { url: video },
+            caption: caption || "Watch this awesome video!",
+            title: title || 'Video Showcase',
+            footer: footer || 'Tap a button below',
+            interactiveButtons
+        };
+        
+        const result = await sock.sendMessage(formattedId, interactiveMessage, { quoted });
+        
+        console.log(`🎬 Rich media interactive video message sent to ${to} with ${interactiveButtons.length} buttons`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'rich_media_video_interactive',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send rich media video interactive error:', error);
+        res.status(500).json({ error: 'Failed to send rich media video interactive message' });
     }
 });
 
@@ -469,8 +607,12 @@ async function startServer() {
             console.log('   • Request Pairing Code: POST /api/pair');
             console.log('   • Send Text Message: POST /api/send/text');
             console.log('   • Send Media: POST /api/send/media');
-            console.log('   • Send Buttons: POST /api/send/buttons');
-            console.log('   • Send Interactive: POST /api/send/interactive');
+            console.log('   • Send Text Buttons: POST /api/send/buttons/text');
+            console.log('   • Send Image Buttons: POST /api/send/buttons/image');
+            console.log('   • Send Video Buttons: POST /api/send/buttons/video');
+            console.log('   • Send Advanced Interactive: POST /api/send/interactive/advanced');
+            console.log('   • Send Rich Media Interactive Image: POST /api/send/interactive/image');
+            console.log('   • Send Rich Media Interactive Video: POST /api/send/interactive/video');
             console.log('═'.repeat(60));
             
             if (!isConnected && qr) {

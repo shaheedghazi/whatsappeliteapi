@@ -96,8 +96,12 @@ Set up the following environment variable in Postman:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/send/buttons` | Send button message |
-| POST | `/api/send/interactive` | Send interactive message |
+| POST | `/api/send/buttons/text` | Send text button message |
+| POST | `/api/send/buttons/image` | Send image button message |
+| POST | `/api/send/buttons/video` | Send video button message |
+| POST | `/api/send/interactive/advanced` | Send advanced interactive message |
+| POST | `/api/send/interactive/image` | Send rich media interactive (image) |
+| POST | `/api/send/interactive/video` | Send rich media interactive (video) |
 
 ## 📝 Usage Examples
 
@@ -121,54 +125,164 @@ POST /api/send/text
 }
 ```
 
-### Send Button Message
+### 📝 Send Text Button Message
 ```json
-POST /api/send/buttons
+POST /api/send/buttons/text
 {
   "to": "1234567890",
-  "text": "Choose an option:",
-  "footer": "Select below",
+  "text": "Hi it's button message",
+  "footer": "Hello World",
   "buttons": [
     {
-      "buttonId": "opt1",
+      "buttonId": "id1",
       "buttonText": {
-        "displayText": "Option 1"
+        "displayText": "Button 1"
       },
       "type": 1
     },
     {
-      "buttonId": "opt2",
+      "buttonId": "id2",
       "buttonText": {
-        "displayText": "Option 2"
+        "displayText": "Button 2"
       },
       "type": 1
     }
-  ]
+  ],
+  "headerType": 1,
+  "viewOnce": true,
+  "quoted": null
 }
 ```
 
-### Send Interactive Message
+### 🖼️ Send Image Button Message
 ```json
-POST /api/send/interactive
+POST /api/send/buttons/image
 {
   "to": "1234567890",
-  "text": "Interactive Message",
-  "title": "Choose Action",
-  "footer": "Powered by Baileys Elite",
+  "image": "https://example.com/abcd.jpg",
+  "caption": "Hi it's button message with image",
+  "footer": "Hello World",
+  "buttons": [
+    {
+      "buttonId": "id1",
+      "buttonText": {
+        "displayText": "Button 1"
+      },
+      "type": 1
+    },
+    {
+      "buttonId": "id2",
+      "buttonText": {
+        "displayText": "Button 2"
+      },
+      "type": 1
+    }
+  ],
+  "headerType": 1,
+  "viewOnce": true,
+  "quoted": null
+}
+```
+
+### 🎬 Send Video Button Message
+```json
+POST /api/send/buttons/video
+{
+  "to": "1234567890",
+  "video": "https://example.com/abcd.mp4",
+  "caption": "Hi it's button message with video",
+  "footer": "Hello World",
+  "buttons": [
+    {
+      "buttonId": "id1",
+      "buttonText": {
+        "displayText": "Button 1"
+      },
+      "type": 1
+    },
+    {
+      "buttonId": "id2",
+      "buttonText": {
+        "displayText": "Button 2"
+      },
+      "type": 1
+    }
+  ],
+  "headerType": 1,
+  "viewOnce": true,
+  "quoted": null
+}
+```
+
+### 🔄 Send Advanced Interactive Message
+```json
+POST /api/send/interactive/advanced
+{
+  "to": "1234567890",
+  "text": "Hello World!",
+  "title": "this is the title",
+  "footer": "this is the footer",
   "interactiveButtons": [
     {
       "name": "quick_reply",
-      "buttonParamsJson": "{\"display_text\": \"Quick Reply\", \"id\": \"quick_1\"}"
+      "buttonParamsJson": "{\"display_text\": \"Quick Reply\", \"id\": \"ID\"}"
     },
     {
       "name": "cta_url",
-      "buttonParamsJson": "{\"display_text\": \"Visit Website\", \"url\": \"https://example.com\"}"
+      "buttonParamsJson": "{\"display_text\": \"Tap Here!\", \"url\": \"https://www.example.com/\"}"
     },
     {
       "name": "cta_copy",
-      "buttonParamsJson": "{\"display_text\": \"Copy Code\", \"id\": \"copy_1\", \"copy_code\": \"PROMO123\"}"
+      "buttonParamsJson": "{\"display_text\": \"Copy Code\", \"id\": \"12345\", \"copy_code\": \"12345\"}"
     }
-  ]
+  ],
+  "quoted": null
+}
+```
+
+### 🖼️ Send Rich Media Interactive Message (Image)
+```json
+POST /api/send/interactive/image
+{
+  "to": "1234567890",
+  "image": "https://example.com/abcd.jpg",
+  "caption": "Check out this amazing photo!",
+  "title": "Photo Showcase",
+  "footer": "Tap a button below",
+  "interactiveButtons": [
+    {
+      "name": "quick_reply",
+      "buttonParamsJson": "{\"display_text\": \"Quick Reply\", \"id\": \"ID\"}"
+    },
+    {
+      "name": "cta_url",
+      "buttonParamsJson": "{\"display_text\": \"Visit Website\", \"url\": \"https://www.example.com/\"}"
+    }
+  ],
+  "quoted": null
+}
+```
+
+### 🎬 Send Rich Media Interactive Message (Video)
+```json
+POST /api/send/interactive/video
+{
+  "to": "1234567890",
+  "video": "https://example.com/abcd.mp4",
+  "caption": "Watch this awesome video!",
+  "title": "Video Showcase",
+  "footer": "Tap a button below",
+  "interactiveButtons": [
+    {
+      "name": "quick_reply",
+      "buttonParamsJson": "{\"display_text\": \"Quick Reply\", \"id\": \"ID\"}"
+    },
+    {
+      "name": "cta_url",
+      "buttonParamsJson": "{\"display_text\": \"Visit Website\", \"url\": \"https://www.example.com/\"}"
+    }
+  ],
+  "quoted": null
 }
 ```
 

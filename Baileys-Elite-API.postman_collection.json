@@ -186,7 +186,7 @@
       "name": "Interactive Messages",
       "item": [
         {
-          "name": "Send Button Message",
+          "name": "📝 Send Text Button Message",
           "request": {
             "method": "POST",
             "header": [
@@ -197,18 +197,18 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hi it's button message\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true\n}"
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hi it's button message\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true,\n  \"quoted\": null\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/send/buttons",
+              "raw": "{{baseUrl}}/api/send/buttons/text",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "send", "buttons"]
+              "path": ["api", "send", "buttons", "text"]
             },
-            "description": "Send message with buttons"
+            "description": "Send text button message as per documentation"
           }
         },
         {
-          "name": "Send Button Message with Image",
+          "name": "🖼️ Send Image Button Message",
           "request": {
             "method": "POST",
             "header": [
@@ -219,18 +219,18 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hi it's button message with image\",\n  \"footer\": \"Hello World\",\n  \"image\": \"https://example.com/image.jpg\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true\n}"
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"image\": \"https://example.com/abcd.jpg\",\n  \"caption\": \"Hi it's button message with image\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true,\n  \"quoted\": null\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/send/buttons",
+              "raw": "{{baseUrl}}/api/send/buttons/image",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "send", "buttons"]
+              "path": ["api", "send", "buttons", "image"]
             },
-            "description": "Send button message with image header"
+            "description": "Send button message with image header as per documentation"
           }
         },
         {
-          "name": "Send Interactive Message",
+          "name": "🎬 Send Video Button Message",
           "request": {
             "method": "POST",
             "header": [
@@ -241,18 +241,18 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hello World!\",\n  \"title\": \"This is the title\",\n  \"footer\": \"This is the footer\",\n  \"interactiveButtons\": [\n    {\n      \"name\": \"quick_reply\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Quick Reply\\\", \\\"id\\\": \\\"ID\\\"}\"\n    },\n    {\n      \"name\": \"cta_url\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Tap Here!\\\", \\\"url\\\": \\\"https://www.example.com/\\\"}\"\n    },\n    {\n      \"name\": \"cta_copy\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Copy Code\\\", \\\"id\\\": \\\"12345\\\", \\\"copy_code\\\": \\\"12345\\\"}\"\n    }\n  ]\n}"
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"video\": \"https://example.com/abcd.mp4\",\n  \"caption\": \"Hi it's button message with video\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true,\n  \"quoted\": null\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/send/interactive",
+              "raw": "{{baseUrl}}/api/send/buttons/video",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "send", "interactive"]
+              "path": ["api", "send", "buttons", "video"]
             },
-            "description": "Send advanced interactive message with quick reply, URL, and copy buttons"
+            "description": "Send button message with video header as per documentation"
           }
         },
         {
-          "name": "Send Interactive Message with Image",
+          "name": "🔄 Send Advanced Interactive Message",
           "request": {
             "method": "POST",
             "header": [
@@ -263,18 +263,62 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Check out this amazing photo!\",\n  \"title\": \"Photo Showcase\",\n  \"footer\": \"Tap a button below\",\n  \"image\": \"https://example.com/image.jpg\",\n  \"caption\": \"Check out this amazing photo!\",\n  \"interactiveButtons\": [\n    {\n      \"name\": \"quick_reply\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Quick Reply\\\", \\\"id\\\": \\\"ID\\\"}\"\n    },\n    {\n      \"name\": \"cta_url\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Visit Website\\\", \\\"url\\\": \\\"https://www.example.com/\\\"}\"\n    }\n  ]\n}"
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hello World!\",\n  \"title\": \"this is the title\",\n  \"footer\": \"this is the footer\",\n  \"interactiveButtons\": [\n    {\n      \"name\": \"quick_reply\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Quick Reply\\\", \\\"id\\\": \\\"ID\\\"}\"\n    },\n    {\n      \"name\": \"cta_url\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Tap Here!\\\", \\\"url\\\": \\\"https://www.example.com/\\\"}\"\n    },\n    {\n      \"name\": \"cta_copy\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Copy Code\\\", \\\"id\\\": \\\"12345\\\", \\\"copy_code\\\": \\\"12345\\\"}\"\n    }\n  ],\n  \"quoted\": null\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/send/interactive",
+              "raw": "{{baseUrl}}/api/send/interactive/advanced",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "send", "interactive"]
+              "path": ["api", "send", "interactive", "advanced"]
             },
-            "description": "Send interactive message with image"
+            "description": "Send advanced interactive message as per documentation"
+          }
+        },
+        {
+          "name": "🖼️ Send Rich Media Interactive (Image)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"image\": \"https://example.com/abcd.jpg\",\n  \"caption\": \"Check out this amazing photo!\",\n  \"title\": \"Photo Showcase\",\n  \"footer\": \"Tap a button below\",\n  \"interactiveButtons\": [\n    {\n      \"name\": \"quick_reply\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Quick Reply\\\", \\\"id\\\": \\\"ID\\\"}\"\n    },\n    {\n      \"name\": \"cta_url\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Visit Website\\\", \\\"url\\\": \\\"https://www.example.com/\\\"}\"\n    }\n  ],\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/interactive/image",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "interactive", "image"]
+            },
+            "description": "Send rich media interactive message with image as per documentation"
+          }
+        },
+        {
+          "name": "🎬 Send Rich Media Interactive (Video)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"video\": \"https://example.com/abcd.mp4\",\n  \"caption\": \"Watch this awesome video!\",\n  \"title\": \"Video Showcase\",\n  \"footer\": \"Tap a button below\",\n  \"interactiveButtons\": [\n    {\n      \"name\": \"quick_reply\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Quick Reply\\\", \\\"id\\\": \\\"ID\\\"}\"\n    },\n    {\n      \"name\": \"cta_url\",\n      \"buttonParamsJson\": \"{\\\"display_text\\\": \\\"Visit Website\\\", \\\"url\\\": \\\"https://www.example.com/\\\"}\"\n    }\n  ],\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/interactive/video",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "interactive", "video"]
+            },
+            "description": "Send rich media interactive message with video as per documentation"
           }
         }
       ],
-      "description": "Interactive messaging with buttons and rich features"
+      "description": "Interactive messaging with buttons and rich features - separate endpoints for each type"
     }
   ]
 } 
