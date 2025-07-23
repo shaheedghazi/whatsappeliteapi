@@ -319,6 +319,166 @@
         }
       ],
       "description": "Interactive messaging with buttons and rich features - separate endpoints for each type"
+    },
+    {
+      "name": "Complex Messages",
+      "item": [
+        {
+          "name": "📤 Send Bulk Messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipients\": [\"1234567890\", \"0987654321\", \"1122334455\"],\n  \"message\": {\n    \"text\": \"Hello! This is a bulk message from our API.\",\n    \"ai\": false\n  },\n  \"messageType\": \"text\",\n  \"delay\": 2000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/bulk",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "bulk"]
+            },
+            "description": "Send bulk messages to multiple recipients with delay control"
+          }
+        },
+        {
+          "name": "👤 Send Contact Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"contact\": {\n    \"name\": \"John Doe\",\n    \"fullName\": \"John Doe\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\",\n    \"organization\": \"ABC Company\"\n  },\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "contact"]
+            },
+            "description": "Send a contact card with vCard format"
+          }
+        },
+        {
+          "name": "📍 Send Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"latitude\": \"37.7749\",\n  \"longitude\": \"-122.4194\",\n  \"name\": \"San Francisco\",\n  \"address\": \"San Francisco, CA, USA\",\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/location",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "location"]
+            },
+            "description": "Send location coordinates with optional name and address"
+          }
+        },
+        {
+          "name": "👍 Send Reaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"messageId\": \"message_id_here\",\n  \"reaction\": \"👍\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/reaction",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "reaction"]
+            },
+            "description": "Send reaction emoji to a specific message"
+          }
+        },
+        {
+          "name": "🏢 Send Business Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"business\": {\n    \"name\": \"TechCorp Solutions\",\n    \"email\": \"info@techcorp.com\",\n    \"phone\": \"+1-800-TECH-CORP\",\n    \"website\": \"https://techcorp.com\",\n    \"address\": \"123 Tech Street, Silicon Valley, CA\",\n    \"description\": \"Leading provider of innovative technology solutions for businesses worldwide.\"\n  },\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/business-card",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "business-card"]
+            },
+            "description": "Send rich business card with interactive contact buttons"
+          }
+        },
+        {
+          "name": "🛍️ Send Product Catalog",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"title\": \"Our Featured Products\",\n  \"footer\": \"Select a product to view details\",\n  \"products\": [\n    {\n      \"name\": \"Smartphone Pro\",\n      \"price\": \"699\",\n      \"description\": \"Latest flagship smartphone with advanced features\"\n    },\n    {\n      \"name\": \"Wireless Headphones\",\n      \"price\": \"199\",\n      \"description\": \"Premium noise-canceling wireless headphones\"\n    },\n    {\n      \"name\": \"Smart Watch\",\n      \"price\": \"299\",\n      \"description\": \"Feature-rich smartwatch with health monitoring\"\n    },\n    {\n      \"name\": \"Tablet Ultra\",\n      \"price\": \"499\",\n      \"description\": \"High-performance tablet for work and entertainment\"\n    }\n  ],\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/catalog",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "catalog"]
+            },
+            "description": "Send interactive product catalog with pricing"
+          }
+        },
+        {
+          "name": "📊 Send Survey/Poll",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"1234567890\",\n  \"survey\": {\n    \"title\": \"Customer Satisfaction Survey\",\n    \"question\": \"How would you rate our service?\",\n    \"options\": [\n      \"😍 Excellent\",\n      \"😊 Good\",\n      \"😐 Average\"\n    ],\n    \"footer\": \"Your feedback helps us improve!\"\n  },\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/survey",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "survey"]
+            },
+            "description": "Send interactive survey/poll with multiple choice options"
+          }
+        }
+      ],
+      "description": "Advanced messaging features including bulk, business templates, and interactive content"
     }
   ]
 } 

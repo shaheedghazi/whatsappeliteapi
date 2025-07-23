@@ -576,6 +576,392 @@ app.post('/api/send/interactive/video', async (req, res) => {
     }
 });
 
+// 🚀 COMPLEX ENDPOINTS
+
+// Bulk message sending
+app.post('/api/send/bulk', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { recipients, message, delay = 1000, messageType = 'text' } = req.body;
+        
+        if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+            return res.status(400).json({ error: 'Recipients array is required' });
+        }
+        
+        if (!message) {
+            return res.status(400).json({ error: 'Message content is required' });
+        }
+        
+        const results = [];
+        const errors = [];
+        
+        for (let i = 0; i < recipients.length; i++) {
+            try {
+                const recipient = recipients[i];
+                const formattedId = formatWhatsAppId(recipient);
+                
+                let messageObj;
+                switch (messageType) {
+                    case 'text':
+                        messageObj = { text: message.text || message, ai: message.ai || false };
+                        break;
+                    case 'image':
+                        messageObj = { 
+                            image: { url: message.image },
+                            caption: message.caption || ''
+                        };
+                        break;
+                    case 'video':
+                        messageObj = { 
+                            video: { url: message.video },
+                            caption: message.caption || ''
+                        };
+                        break;
+                    default:
+                        messageObj = { text: message.text || message };
+                }
+                
+                const result = await sock.sendMessage(formattedId, messageObj);
+                results.push({
+                    to: formattedId,
+                    messageId: result.key.id,
+                    status: 'sent'
+                });
+                
+                // Delay between messages to avoid rate limiting
+                if (i < recipients.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                
+            } catch (error) {
+                errors.push({
+                    to: recipients[i],
+                    error: error.message
+                });
+            }
+        }
+        
+        console.log(`📤 Bulk message sent to ${results.length} recipients, ${errors.length} failed`);
+        
+        res.json({
+            success: true,
+            sent: results.length,
+            failed: errors.length,
+            results: results,
+            errors: errors,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Bulk send error:', error);
+        res.status(500).json({ error: 'Failed to send bulk messages' });
+    }
+});
+
+// Send contact card
+app.post('/api/send/contact', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, contact, quoted = null } = req.body;
+        
+        if (!to || !contact) {
+            return res.status(400).json({ error: 'Required fields: to, contact' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        // Format contact card
+        const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${contact.fullName || contact.name}
+N:${contact.lastName || ''};${contact.firstName || contact.name};;;
+ORG:${contact.organization || ''}
+TEL;type=CELL;type=VOICE;waid=${contact.phone}:${contact.phone}
+END:VCARD`;
+        
+        const contactMessage = {
+            contacts: {
+                displayName: contact.fullName || contact.name,
+                contacts: [{ vcard }]
+            }
+        };
+        
+        const result = await sock.sendMessage(formattedId, contactMessage, { quoted });
+        
+        console.log(`👤 Contact card sent to ${to}: ${contact.name}`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            contact: contact.name,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send contact error:', error);
+        res.status(500).json({ error: 'Failed to send contact' });
+    }
+});
+
+// Send location
+app.post('/api/send/location', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, latitude, longitude, name, address, quoted = null } = req.body;
+        
+        if (!to || !latitude || !longitude) {
+            return res.status(400).json({ error: 'Required fields: to, latitude, longitude' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const locationMessage = {
+            location: {
+                degreesLatitude: parseFloat(latitude),
+                degreesLongitude: parseFloat(longitude),
+                name: name || '',
+                address: address || ''
+            }
+        };
+        
+        const result = await sock.sendMessage(formattedId, locationMessage, { quoted });
+        
+        console.log(`📍 Location sent to ${to}: ${latitude}, ${longitude}`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            location: { latitude, longitude, name, address },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send location error:', error);
+        res.status(500).json({ error: 'Failed to send location' });
+    }
+});
+
+// Send message with reaction
+app.post('/api/send/reaction', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, messageId, reaction } = req.body;
+        
+        if (!to || !messageId || !reaction) {
+            return res.status(400).json({ error: 'Required fields: to, messageId, reaction' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const reactionMessage = {
+            react: {
+                text: reaction,
+                key: {
+                    remoteJid: formattedId,
+                    id: messageId
+                }
+            }
+        };
+        
+        const result = await sock.sendMessage(formattedId, reactionMessage);
+        
+        console.log(`👍 Reaction sent to ${to}: ${reaction}`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            reaction: reaction,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send reaction error:', error);
+        res.status(500).json({ error: 'Failed to send reaction' });
+    }
+});
+
+// Send business card template
+app.post('/api/send/business-card', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, business, quoted = null } = req.body;
+        
+        if (!to || !business) {
+            return res.status(400).json({ error: 'Required fields: to, business' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        // Create a rich business card with interactive buttons
+        const businessCard = {
+            text: `🏢 *${business.name}*\n\n📧 ${business.email}\n📞 ${business.phone}\n🌐 ${business.website}\n📍 ${business.address}\n\n${business.description || 'Welcome to our business!'}`,
+            title: business.name,
+            footer: 'Contact us for more information',
+            interactiveButtons: [
+                {
+                    name: "cta_call",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "📞 Call Us",
+                        phone_number: business.phone
+                    })
+                },
+                {
+                    name: "cta_url",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "🌐 Visit Website",
+                        url: business.website
+                    })
+                },
+                {
+                    name: "quick_reply",
+                    buttonParamsJson: JSON.stringify({
+                        display_text: "📧 Get Info",
+                        id: "business_info"
+                    })
+                }
+            ]
+        };
+        
+        const result = await sock.sendMessage(formattedId, businessCard, { quoted });
+        
+        console.log(`🏢 Business card sent to ${to}: ${business.name}`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            business: business.name,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send business card error:', error);
+        res.status(500).json({ error: 'Failed to send business card' });
+    }
+});
+
+// Send product catalog
+app.post('/api/send/catalog', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, products, title = "Our Products", footer = "Choose a product to learn more", quoted = null } = req.body;
+        
+        if (!to || !products || !Array.isArray(products)) {
+            return res.status(400).json({ error: 'Required fields: to, products (array)' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        // Create interactive buttons for each product
+        const productButtons = products.slice(0, 3).map((product, index) => ({
+            name: "quick_reply",
+            buttonParamsJson: JSON.stringify({
+                display_text: `${product.name} - $${product.price}`,
+                id: `product_${index}`
+            })
+        }));
+        
+        // Add a "View All" button if there are more than 3 products
+        if (products.length > 3) {
+            productButtons.push({
+                name: "quick_reply",
+                buttonParamsJson: JSON.stringify({
+                    display_text: `View All ${products.length} Products`,
+                    id: "view_all_products"
+                })
+            });
+        }
+        
+        const catalogMessage = {
+            text: `🛍️ *${title}*\n\n${products.slice(0, 3).map(product => 
+                `📦 *${product.name}*\n💰 $${product.price}\n📝 ${product.description}\n`
+            ).join('\n')}`,
+            title: title,
+            footer: footer,
+            interactiveButtons: productButtons
+        };
+        
+        const result = await sock.sendMessage(formattedId, catalogMessage, { quoted });
+        
+        console.log(`🛍️ Product catalog sent to ${to} with ${products.length} products`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            productsCount: products.length,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send catalog error:', error);
+        res.status(500).json({ error: 'Failed to send catalog' });
+    }
+});
+
+// Send survey/poll
+app.post('/api/send/survey', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, survey, quoted = null } = req.body;
+        
+        if (!to || !survey || !survey.question || !survey.options) {
+            return res.status(400).json({ error: 'Required fields: to, survey.question, survey.options' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        // Create interactive buttons for survey options
+        const surveyButtons = survey.options.slice(0, 3).map((option, index) => ({
+            name: "quick_reply",
+            buttonParamsJson: JSON.stringify({
+                display_text: option,
+                id: `survey_${index}`
+            })
+        }));
+        
+        const surveyMessage = {
+            text: `📊 *${survey.title || 'Survey'}*\n\n❓ ${survey.question}\n\nPlease select your answer:`,
+            title: survey.title || 'Survey',
+            footer: survey.footer || 'Thank you for participating!',
+            interactiveButtons: surveyButtons
+        };
+        
+        const result = await sock.sendMessage(formattedId, surveyMessage, { quoted });
+        
+        console.log(`📊 Survey sent to ${to}: ${survey.question}`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            survey: survey.question,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send survey error:', error);
+        res.status(500).json({ error: 'Failed to send survey' });
+    }
+});
+
 // Error handling middleware
 app.use((error, req, res, next) => {
     logger.error('Unhandled error:', error);
@@ -613,6 +999,13 @@ async function startServer() {
             console.log('   • Send Advanced Interactive: POST /api/send/interactive/advanced');
             console.log('   • Send Rich Media Interactive Image: POST /api/send/interactive/image');
             console.log('   • Send Rich Media Interactive Video: POST /api/send/interactive/video');
+            console.log('   • Send Bulk Messages: POST /api/send/bulk');
+            console.log('   • Send Contact Card: POST /api/send/contact');
+            console.log('   • Send Location: POST /api/send/location');
+            console.log('   • Send Reaction: POST /api/send/reaction');
+            console.log('   • Send Business Card: POST /api/send/business-card');
+            console.log('   • Send Product Catalog: POST /api/send/catalog');
+            console.log('   • Send Survey: POST /api/send/survey');
             console.log('═'.repeat(60));
             
             if (!isConnected && qr) {
