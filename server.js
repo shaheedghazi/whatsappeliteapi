@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const QRCode = require('qrcode');
+const qrCodeTerminal = require('qrcode-terminal');
 const fs = require('fs');
 const path = require('path');
 const winston = require('winston');
@@ -67,7 +68,7 @@ async function initializeWhatsApp() {
         
         sock = makeWASocket({
             auth: state,
-            printQRInTerminal: false,
+            printQRInTerminal: false, // We'll handle QR display ourselves
             logger: baleysLogger,
             browser: Browsers.macOS('Desktop')
         });
@@ -78,6 +79,14 @@ async function initializeWhatsApp() {
             if (newQr) {
                 qr = newQr;
                 logger.info('QR Code received');
+                
+                // Display QR code in terminal
+                console.log('\n📱 Scan this QR code with your WhatsApp mobile app:');
+                console.log('═'.repeat(60));
+                qrCodeTerminal.generate(newQr, { small: true });
+                console.log('═'.repeat(60));
+                console.log('💡 Tip: You can also get the QR via API: GET /api/qr');
+                console.log('🔗 Or use pairing code: POST /api/pair\n');
             }
             
             if (connection === 'close') {
@@ -85,12 +94,15 @@ async function initializeWhatsApp() {
                 logger.info('Connection closed due to', lastDisconnect?.error, ', reconnecting', shouldReconnect);
                 
                 if (shouldReconnect) {
+                    console.log('🔄 Reconnecting to WhatsApp...\n');
                     initializeWhatsApp();
                 }
                 isConnected = false;
                 connectionState = 'disconnected';
             } else if (connection === 'open') {
                 logger.info('WhatsApp connected successfully');
+                console.log('\n✅ WhatsApp connected successfully!');
+                console.log('🎉 Ready to send messages via Postman!\n');
                 isConnected = true;
                 connectionState = 'connected';
                 qr = null;
@@ -181,6 +193,13 @@ app.post('/api/pair', async (req, res) => {
         
         const code = await sock.requestPairingCode(phoneNumber, customCode || "BAILEYS1");
         
+        // Display pairing code in terminal too
+        console.log('\n📱 Pairing Code for', phoneNumber);
+        console.log('═'.repeat(40));
+        console.log(`🔑 Code: ${code?.match(/.{1,4}/g)?.join('-') || code}`);
+        console.log('═'.repeat(40));
+        console.log('💡 Enter this code in your WhatsApp mobile app\n');
+        
         res.json({
             success: true,
             pairingCode: code?.match(/.{1,4}/g)?.join('-') || code,
@@ -200,6 +219,7 @@ app.post('/api/logout', async (req, res) => {
         }
         isConnected = false;
         connectionState = 'disconnected';
+        console.log('👋 Logged out from WhatsApp\n');
         res.json({ success: true, message: 'Logged out successfully' });
     } catch (error) {
         logger.error('Logout error:', error);
@@ -224,6 +244,9 @@ app.post('/api/send/text', async (req, res) => {
         const message = { text, ai };
         
         const result = await sock.sendMessage(formattedId, message);
+        
+        // Log message sending in terminal
+        console.log(`📤 Message sent to ${to}: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}" ${ai ? '🤖' : ''}`);
         
         res.json({
             success: true,
@@ -293,6 +316,9 @@ app.post('/api/send/media', upload.single('media'), async (req, res) => {
         // Clean up uploaded file
         fs.unlinkSync(mediaPath);
         
+        // Log media sending in terminal
+        console.log(`📤 ${type.toUpperCase()} sent to ${to}: ${file.originalname}`);
+        
         res.json({
             success: true,
             messageId: result.key.id,
@@ -346,6 +372,9 @@ app.post('/api/send/buttons', async (req, res) => {
         
         const result = await sock.sendMessage(formattedId, message);
         
+        // Log button message sending in terminal
+        console.log(`📤 Button message sent to ${to} with ${buttons.length} buttons`);
+        
         res.json({
             success: true,
             messageId: result.key.id,
@@ -393,6 +422,9 @@ app.post('/api/send/interactive', async (req, res) => {
         }
         
         const result = await sock.sendMessage(formattedId, message);
+        
+        // Log interactive message sending in terminal
+        console.log(`📤 Interactive message sent to ${to} with ${interactiveButtons.length} buttons`);
         
         res.json({
             success: true,
@@ -448,6 +480,8 @@ app.post('/api/newsletter/create', async (req, res) => {
         }
         
         const metadata = await sock.newsletterCreate(name, description);
+        
+        console.log(`📰 Newsletter created: "${name}"`);
         
         res.json({
             success: true,
@@ -665,21 +699,43 @@ app.use('*', (req, res) => {
 // Initialize and start server
 async function startServer() {
     try {
+        console.log('🚀 Starting Baileys Elite WhatsApp API Server...\n');
+        
         await initializeWhatsApp();
         
         app.listen(PORT, () => {
             logger.info(`Baileys Elite API server running on port ${PORT}`);
-            console.log(`🚀 Server running on http://localhost:${PORT}`);
-            console.log(`📱 WhatsApp API ready for Postman testing!`);
+            console.log('═'.repeat(60));
+            console.log('🚀 Server running on http://localhost:' + PORT);
+            console.log('📱 WhatsApp API ready for Postman testing!');
+            console.log('═'.repeat(60));
+            console.log('📋 Available endpoints:');
+            console.log('   • Health Check: GET /api/health');
+            console.log('   • Connection Status: GET /api/status');
+            console.log('   • Get QR Code: GET /api/qr');
+            console.log('   • Request Pairing Code: POST /api/pair');
+            console.log('   • Send Text Message: POST /api/send/text');
+            console.log('   • Send Media: POST /api/send/media');
+            console.log('   • Send Buttons: POST /api/send/buttons');
+            console.log('   • Send Interactive: POST /api/send/interactive');
+            console.log('   • Newsletter Management: /api/newsletter/*');
+            console.log('═'.repeat(60));
+            
+            if (!isConnected && qr) {
+                console.log('⏳ Waiting for WhatsApp connection...');
+                console.log('📱 Please scan the QR code above or use pairing code\n');
+            }
         });
     } catch (error) {
         logger.error('Failed to start server:', error);
+        console.error('❌ Failed to start server:', error);
         process.exit(1);
     }
 }
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
+    console.log('\n👋 Shutting down gracefully...');
     logger.info('Shutting down gracefully...');
     if (sock) {
         await sock.end();
