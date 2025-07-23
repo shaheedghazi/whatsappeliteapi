@@ -97,6 +97,18 @@ POST {{baseUrl}}/api/send/interactive
 }
 ```
 
+### Send Media Files
+```
+POST {{baseUrl}}/api/send/media
+Content-Type: multipart/form-data
+
+Form Data:
+- to: 1234567890
+- type: image
+- caption: Check this out!
+- media: [upload file]
+```
+
 ## 🎯 Common Issues & Solutions
 
 | Issue | Solution |
@@ -122,9 +134,9 @@ If WhatsApp disconnects:
 ## 📋 Next Steps
 
 Once basic messaging works:
-- Explore newsletter features
-- Try media uploads
-- Test button interactions
+- Try button messages
+- Test media uploads
+- Explore interactive features
 - Set up webhooks for incoming messages
 
 ## 🆘 Need Help?

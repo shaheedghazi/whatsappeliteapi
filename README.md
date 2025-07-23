@@ -1,6 +1,6 @@
 # 🚀 Baileys Elite WhatsApp API Server
 
-A complete REST API server for WhatsApp Web automation using [baileys-elite](https://www.npmjs.com/package/baileys-elite). This server exposes all baileys-elite functionality through REST endpoints that can be easily tested with Postman.
+A complete REST API server for WhatsApp Web automation using [baileys-elite](https://www.npmjs.com/package/baileys-elite). This server exposes messaging and interactive features through REST endpoints that can be easily tested with Postman.
 
 ## ✨ Features
 
@@ -8,7 +8,6 @@ A complete REST API server for WhatsApp Web automation using [baileys-elite](htt
 - 💬 **Messaging**: Text messages with AI icons
 - 📱 **Interactive Messages**: Buttons, quick replies, URL buttons
 - 📸 **Media Support**: Images, videos, audio, documents
-- 📰 **Newsletter Management**: Create, manage, and interact with newsletters
 - 🛡️ **Security**: Rate limiting, CORS, and proper error handling
 - 📋 **Logging**: Comprehensive logging with Winston
 - 🔄 **Auto-reconnection**: Automatic WhatsApp reconnection
@@ -100,21 +99,6 @@ Set up the following environment variable in Postman:
 | POST | `/api/send/buttons` | Send button message |
 | POST | `/api/send/interactive` | Send interactive message |
 
-### 📰 Newsletter Management
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/newsletter/:type/:identifier` | Get newsletter metadata |
-| POST | `/api/newsletter/create` | Create newsletter |
-| PUT | `/api/newsletter/:jid/description` | Update description |
-| PUT | `/api/newsletter/:jid/name` | Update name |
-| POST | `/api/newsletter/:jid/follow` | Follow newsletter |
-| POST | `/api/newsletter/:jid/unfollow` | Unfollow newsletter |
-| POST | `/api/newsletter/:jid/mute` | Mute newsletter |
-| POST | `/api/newsletter/:jid/unmute` | Unmute newsletter |
-| POST | `/api/newsletter/:jid/react` | React to message |
-| DELETE | `/api/newsletter/:jid` | Delete newsletter |
-
 ## 📝 Usage Examples
 
 ### Send Text Message
@@ -200,15 +184,6 @@ Form Data:
 - media: [file upload]
 ```
 
-### Create Newsletter
-```json
-POST /api/newsletter/create
-{
-  "name": "My Newsletter",
-  "description": "This is my awesome newsletter"
-}
-```
-
 ## 📱 Phone Number Format
 
 Phone numbers can be provided in various formats:
@@ -230,83 +205,43 @@ All API activities are logged to:
 - **Console**: Real-time logs
 - **File**: `api.log` file
 
+## 🚀 Quick Start
+
+1. **Clone and install**
+```powershell
+npm install
+npm start
+```
+
+2. **Import Postman collection** (`Baileys-Elite-API.postman_collection.json`)
+
+3. **Test connection** with `GET /api/health`
+
+4. **Get QR code** with `GET /api/qr` and scan with WhatsApp
+
+5. **Send your first message** with `POST /api/send/text`
+
+## 🏗️ Architecture
+
+- **Express.js**: REST API framework
+- **baileys-elite**: WhatsApp Web automation
+- **Winston**: Logging system
+- **Multer**: File upload handling
+- **Helmet**: Security middleware
+
+## 📦 Package Features
+
+- Lightweight and fast
+- Auto-reconnection to WhatsApp
+- File upload support
+- Rate limiting protection
+- Comprehensive error handling
+- Cross-platform compatibility
+
 ## 🔧 Configuration
 
 Environment variables (optional):
 - `PORT`: Server port (default: 3000)
-
-## 📁 File Structure
-
-```
-api/
-├── server.js                           # Main server file
-├── package.json                        # Dependencies
-├── Baileys-Elite-API.postman_collection.json # Postman collection
-├── README.md                          # This file
-├── auth_info_baileys/                 # WhatsApp auth data (auto-created)
-├── uploads/                           # Temporary upload folder (auto-created)
-└── api.log                           # Log file (auto-created)
-```
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-1. **Connection Failed**
-   - Check if WhatsApp Web is accessible
-   - Verify internet connection
-   - Check server logs
-
-2. **QR Code Not Appearing**
-   - Restart the server
-   - Check `/api/status` endpoint
-   - Clear auth data: delete `auth_info_baileys` folder
-
-3. **Message Sending Failed**
-   - Verify WhatsApp connection: `GET /api/status`
-   - Check phone number format
-   - Ensure recipient has WhatsApp
-
-4. **File Upload Issues**
-   - Check file size (max 100MB)
-   - Verify file type
-   - Ensure proper form-data format
-
-### Error Responses
-
-All errors return JSON format:
-```json
-{
-  "error": "Error description",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
-## 🔄 Auto-Reconnection
-
-The server automatically handles:
-- Connection drops
-- Session restoration
-- QR code regeneration when needed
-
-## 📝 Response Format
-
-All successful responses include:
-```json
-{
-  "success": true,
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  // ... additional response data
-}
-```
-
-## 🎯 Testing with Postman
-
-1. **Import the collection** from `Baileys-Elite-API.postman_collection.json`
-2. **Set environment variable** `baseUrl` to `http://localhost:3000`
-3. **Start with connection endpoints** to authenticate
-4. **Test messaging endpoints** once connected
-5. **Explore newsletter features** for advanced functionality
 
 ## 🤝 Contributing
 
