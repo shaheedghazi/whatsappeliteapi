@@ -13,7 +13,7 @@ require('dotenv').config();
 
 // Import baileys-elite
 const makeWASocket = require('baileys-elite').default;
-const { useMultiFileAuthState, DisconnectReason, Browsers } = require('baileys-elite');
+const { useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion } = require('baileys-elite');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,21 +60,44 @@ let sock = null;
 let qr = null;
 let isConnected = false;
 let connectionState = 'disconnected';
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
 
 // Initialize WhatsApp connection
 async function initializeWhatsApp() {
     try {
+        // Get latest version info
+        const { version, isLatest } = await fetchLatestBaileysVersion();
+        logger.info(`Using Baileys version: ${version.join('.')}, Latest: ${isLatest}`);
+        
         const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
         
         sock = makeWASocket({
             auth: state,
-            printQRInTerminal: false, // We'll handle QR display ourselves
+            version,
+            printQRInTerminal: false,
             logger: baleysLogger,
-            browser: Browsers.macOS('Desktop')
+            browser: Browsers.macOS('Desktop'),
+            connectTimeoutMs: 60000, // 60 seconds timeout
+            defaultQueryTimeoutMs: 60000,
+            keepAliveIntervalMs: 30000,
+            retryRequestDelayMs: 1000,
+            markOnlineOnConnect: true,
+            syncFullHistory: false, // Disable for faster connection
+            fireInitQueries: true,
+            generateHighQualityLinkPreview: true,
+            // Add mobile configuration for better compatibility
+            mobile: false,
+            // Add message retry configuration
+            msgRetryCounterMap: new Map(),
+            getMessage: async (key) => {
+                // Return empty message for retry mechanism
+                return { conversation: '' };
+            }
         });
 
         sock.ev.on('connection.update', async (update) => {
-            const { connection, lastDisconnect, qr: newQr } = update;
+            const { connection, lastDisconnect, qr: newQr, receivedPendingNotifications } = update;
             
             if (newQr) {
                 qr = newQr;
@@ -90,25 +113,46 @@ async function initializeWhatsApp() {
             }
             
             if (connection === 'close') {
-                const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
-                logger.info('Connection closed due to', lastDisconnect?.error, ', reconnecting', shouldReconnect);
+                const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+                const reason = lastDisconnect?.error?.output?.statusCode;
                 
-                if (shouldReconnect) {
-                    console.log('🔄 Reconnecting to WhatsApp...\n');
-                    initializeWhatsApp();
+                logger.info(`Connection closed - Reason: ${reason}, Should reconnect: ${shouldReconnect}`);
+                
+                if (shouldReconnect && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Exponential backoff
+                    
+                    console.log(`🔄 Reconnecting to WhatsApp... (Attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
+                    console.log(`⏰ Waiting ${delay/1000} seconds before retry...\n`);
+                    
+                    setTimeout(() => {
+                        initializeWhatsApp();
+                    }, delay);
+                } else if (reconnectAttempts >= maxReconnectAttempts) {
+                    console.log('❌ Max reconnection attempts reached. Please restart the server.');
+                    logger.error('Max reconnection attempts reached');
+                } else {
+                    console.log('🚫 Logged out - Please restart server and scan QR again');
                 }
+                
                 isConnected = false;
                 connectionState = 'disconnected';
             } else if (connection === 'open') {
+                reconnectAttempts = 0; // Reset counter on successful connection
                 logger.info('WhatsApp connected successfully');
                 console.log('\n✅ WhatsApp connected successfully!');
                 console.log('🎉 Ready to send messages via Postman!\n');
                 isConnected = true;
                 connectionState = 'connected';
                 qr = null;
+            } else if (connection === 'connecting') {
+                console.log('🔄 Connecting to WhatsApp...');
+                connectionState = 'connecting';
             }
             
-            connectionState = connection || 'unknown';
+            if (receivedPendingNotifications) {
+                console.log('📬 Received pending notifications');
+            }
         });
 
         sock.ev.on('creds.update', saveCreds);
@@ -117,9 +161,32 @@ async function initializeWhatsApp() {
             logger.info('New message received:', JSON.stringify(m, null, 2));
         });
 
+        // Handle authentication failures
+        sock.ev.on('CB:xmlstreamend', () => {
+            console.log('🔄 Stream ended, reconnecting...');
+            if (isConnected) {
+                initializeWhatsApp();
+            }
+        });
+
+        // Handle WebSocket errors
+        sock.ws?.on('error', (error) => {
+            logger.error('WebSocket error:', error);
+            console.log('⚠️ WebSocket error occurred, will attempt to reconnect...');
+        });
+
     } catch (error) {
         logger.error('Failed to initialize WhatsApp:', error);
-        throw error;
+        console.error('❌ Initialization error:', error.message);
+        
+        // Retry initialization after delay
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            setTimeout(() => {
+                console.log(`🔄 Retrying initialization... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                initializeWhatsApp();
+            }, 5000);
+        }
     }
 }
 
