@@ -67,7 +67,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"customCode\": \"BAILEYS1\"\n}"
+              "raw": "{\n  \"phoneNumber\": \"+923007309179\",\n  \"customCode\": \"BAILEYS1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/pair",
@@ -89,6 +89,19 @@
             },
             "description": "Logout from WhatsApp Web"
           }
+        },
+        {
+          "name": "👤 Get User Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "info"]
+            },
+            "description": "Get current logged-in user info including business JID for catalog messages"
+          }
         }
       ],
       "description": "Endpoints for managing WhatsApp connection"
@@ -108,7 +121,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hello from Baileys Elite API!\",\n  \"ai\": false\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"text\": \"Hello from Baileys Elite API!\",\n  \"ai\": false\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/text",
@@ -130,7 +143,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"text\": \"Hello! I'm your AI assistant.\",\n  \"ai\": true\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"text\": \"Hello! I'm your AI assistant.\",\n  \"ai\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/text",
@@ -150,7 +163,7 @@
               "formdata": [
                 {
                   "key": "to",
-                  "value": "1234567890",
+                  "value": "923007309179",
                   "type": "text"
                 },
                 {
@@ -177,6 +190,50 @@
               "path": ["api", "send", "media"]
             },
             "description": "Send media files (image, video, audio, document)"
+          }
+        },
+        {
+          "name": "🎯 Send Sticker",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"sticker\": \"https://img-06.stickers.cloud/packs/5df297e3-a7f0-44e0-a6d1-43bdb09b793c/webp/8709a42d-0579-4314-b659-9c2cdb979305.webp\",\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/sticker",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "sticker"]
+            },
+            "description": "Send sticker message"
+          }
+        },
+        {
+          "name": "🎤 Send Voice Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"audio\": \"https://samples.ffmpeg.org/ogg/mmw-deadzy.ogg\",\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/voice",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "voice"]
+            },
+            "description": "Send voice note (PTT - Push to Talk)"
           }
         }
       ],
@@ -219,7 +276,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"image\": \"https://example.com/abcd.jpg\",\n  \"caption\": \"Hi it's button message with image\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true,\n  \"quoted\": null\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"image\": \"https://www.nomadfoods.com/wp-content/uploads/2018/08/placeholder-1-e1533569576673.png\",\n  \"caption\": \"Hi it's button message with image\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true,\n  \"quoted\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/buttons/image",
@@ -241,7 +298,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"video\": \"https://example.com/abcd.mp4\",\n  \"caption\": \"Hi it's button message with video\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true,\n  \"quoted\": null\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"video\": \"https://www.papytane.com/mp4/devoirs.mp4\",\n  \"caption\": \"Hi it's button message with video\",\n  \"footer\": \"Hello World\",\n  \"buttons\": [\n    {\n      \"buttonId\": \"id1\",\n      \"buttonText\": {\n        \"displayText\": \"Button 1\"\n      },\n      \"type\": 1\n    },\n    {\n      \"buttonId\": \"id2\",\n      \"buttonText\": {\n        \"displayText\": \"Button 2\"\n      },\n      \"type\": 1\n    }\n  ],\n  \"headerType\": 1,\n  \"viewOnce\": true,\n  \"quoted\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/buttons/video",
@@ -270,7 +327,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "send", "interactive", "advanced"]
             },
-            "description": "Send advanced interactive message as per documentation"
+            "description": "Send advanced interactive message exactly as per baileys-elite documentation"
           }
         },
         {
@@ -292,7 +349,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "send", "interactive", "image"]
             },
-            "description": "Send rich media interactive message with image as per documentation"
+            "description": "Send rich media interactive message with image exactly as per baileys-elite documentation"
           }
         },
         {
@@ -314,7 +371,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "send", "interactive", "video"]
             },
-            "description": "Send rich media interactive message with video as per documentation"
+            "description": "Send rich media interactive message with video exactly as per baileys-elite documentation"
           }
         }
       ],
@@ -335,7 +392,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"recipients\": [\"1234567890\", \"0987654321\", \"1122334455\"],\n  \"message\": {\n    \"text\": \"Hello! This is a bulk message from our API.\",\n    \"ai\": false\n  },\n  \"messageType\": \"text\",\n  \"delay\": 2000\n}"
+              "raw": "{\n  \"recipients\": [\"923007309179\", \"0987654321\", \"1122334455\"],\n  \"message\": {\n    \"text\": \"Hello! This is a bulk message from our API.\",\n    \"ai\": false\n  },\n  \"messageType\": \"text\",\n  \"delay\": 2000\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/bulk",
@@ -357,7 +414,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"contact\": {\n    \"name\": \"John Doe\",\n    \"fullName\": \"John Doe\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\",\n    \"organization\": \"ABC Company\"\n  },\n  \"quoted\": null\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"contact\": {\n    \"name\": \"John Doe\",\n    \"fullName\": \"John Doe\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+923007309179\",\n    \"organization\": \"ABC Company\"\n  },\n  \"quoted\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/contact",
@@ -379,7 +436,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"latitude\": \"37.7749\",\n  \"longitude\": \"-122.4194\",\n  \"name\": \"San Francisco\",\n  \"address\": \"San Francisco, CA, USA\",\n  \"quoted\": null\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"latitude\": \"37.7749\",\n  \"longitude\": \"-122.4194\",\n  \"name\": \"San Francisco\",\n  \"address\": \"San Francisco, CA, USA\",\n  \"quoted\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/location",
@@ -401,7 +458,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"messageId\": \"message_id_here\",\n  \"reaction\": \"👍\"\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"messageId\": \"message_id_here\",\n  \"reaction\": \"👍\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/reaction",
@@ -423,7 +480,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"business\": {\n    \"name\": \"TechCorp Solutions\",\n    \"email\": \"info@techcorp.com\",\n    \"phone\": \"+1-800-TECH-CORP\",\n    \"website\": \"https://techcorp.com\",\n    \"address\": \"123 Tech Street, Silicon Valley, CA\",\n    \"description\": \"Leading provider of innovative technology solutions for businesses worldwide.\"\n  },\n  \"quoted\": null\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"business\": {\n    \"name\": \"TechCorp Solutions\",\n    \"email\": \"info@techcorp.com\",\n    \"phone\": \"+1-800-TECH-CORP\",\n    \"website\": \"https://techcorp.com\",\n    \"address\": \"123 Tech Street, Silicon Valley, CA\",\n    \"description\": \"Leading provider of innovative technology solutions for businesses worldwide.\"\n  },\n  \"quoted\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/business-card",
@@ -445,14 +502,171 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"title\": \"Our Featured Products\",\n  \"footer\": \"Select a product to view details\",\n  \"products\": [\n    {\n      \"name\": \"Smartphone Pro\",\n      \"price\": \"699\",\n      \"description\": \"Latest flagship smartphone with advanced features\"\n    },\n    {\n      \"name\": \"Wireless Headphones\",\n      \"price\": \"199\",\n      \"description\": \"Premium noise-canceling wireless headphones\"\n    },\n    {\n      \"name\": \"Smart Watch\",\n      \"price\": \"299\",\n      \"description\": \"Feature-rich smartwatch with health monitoring\"\n    },\n    {\n      \"name\": \"Tablet Ultra\",\n      \"price\": \"499\",\n      \"description\": \"High-performance tablet for work and entertainment\"\n    }\n  ],\n  \"quoted\": null\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"title\": \"Our Featured Products\",\n  \"footer\": \"Select a product to view details\",\n  \"products\": [\n    {\n      \"id\": \"smartphone_pro_001\",\n      \"name\": \"Smartphone Pro\",\n      \"price\": \"699\",\n      \"currency\": \"USD\",\n      \"description\": \"Latest flagship smartphone with advanced features\",\n      \"image\": \"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400\",\n      \"url\": \"https://myshop.com/products/smartphone-pro\"\n    }\n  ],\n  \"businessOwnerJid\": \"923317482772@s.whatsapp.net\",\n  \"quoted\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/catalog",
               "host": ["{{baseUrl}}"],
               "path": ["api", "send", "catalog"]
             },
-            "description": "Send interactive product catalog with pricing"
+            "description": "Send rich media product catalog with images, pricing and interactive buttons. Single product = rich media card, Multiple products = interactive list."
+          }
+        },
+        {
+          "name": "🎥 Send Media Album",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"media\": [\n    {\n      \"type\": \"image\",\n      \"image\": \"https://www.nomadfoods.com/wp-content/uploads/2018/08/placeholder-1-e1533569576673.png\",\n      \"caption\": \"Product Image 1\"\n    },\n    {\n      \"type\": \"image\",\n      \"image\": \"https://www.nomadfoods.com/wp-content/uploads/2018/08/placeholder-1-e1533569576673.png\",\n      \"caption\": \"Product Image 2\"\n    },\n    {\n      \"type\": \"video\",\n      \"video\": \"https://www.papytane.com/mp4/devoirs.mp4\",\n      \"caption\": \"Product Demo Video\"\n    }\n  ],\n  \"delay\": 1500,\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/album",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "album"]
+            },
+            "description": "Send multiple images/videos in a single grouped album message (max 10 items)"
+          }
+        },
+        {
+          "name": "📄 Send Document (URL)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"documentUrl\": \"https://example.com/document.pdf\",\n  \"fileName\": \"Important_Document.pdf\",\n  \"caption\": \"📄 Please review this important document\",\n  \"mimetype\": \"application/pdf\",\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/document",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "document"]
+            },
+            "description": "Send document from URL (PDF, DOC, DOCX, etc.)"
+          }
+        },
+        {
+          "name": "📄 Send Document (File Upload)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "to",
+                  "value": "923007309179",
+                  "type": "text"
+                },
+                {
+                  "key": "fileName",
+                  "value": "Report.pdf",
+                  "type": "text"
+                },
+                {
+                  "key": "caption",
+                  "value": "📄 Monthly report attached",
+                  "type": "text"
+                },
+                {
+                  "key": "mimetype",
+                  "value": "application/pdf",
+                  "type": "text"
+                },
+                {
+                  "key": "document",
+                  "type": "file",
+                  "description": "Select your document file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/document",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "document"]
+            },
+            "description": "Send document by uploading file (PDF, DOC, DOCX, etc.)"
+          }
+        },
+        {
+          "name": "🧾 Send Invoice (URL)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"invoiceUrl\": \"https://example.com/invoice-12345.pdf\",\n  \"invoiceNumber\": \"INV-2024-001\",\n  \"customerName\": \"John Doe\",\n  \"amount\": \"299.99\",\n  \"currency\": \"USD\",\n  \"quoted\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/invoice",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "invoice"]
+            },
+            "description": "Send formatted invoice from URL with customer details"
+          }
+        },
+        {
+          "name": "🧾 Send Invoice (File Upload)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "to",
+                  "value": "923007309179",
+                  "type": "text"
+                },
+                {
+                  "key": "invoiceNumber",
+                  "value": "INV-2024-001",
+                  "type": "text"
+                },
+                {
+                  "key": "customerName",
+                  "value": "John Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "299.99",
+                  "type": "text"
+                },
+                {
+                  "key": "currency",
+                  "value": "USD",
+                  "type": "text"
+                },
+                {
+                  "key": "invoice",
+                  "type": "file",
+                  "description": "Select your invoice PDF file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/send/invoice",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "send", "invoice"]
+            },
+            "description": "Send formatted invoice by uploading PDF file with customer details"
           }
         },
         {
@@ -467,7 +681,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"1234567890\",\n  \"survey\": {\n    \"title\": \"Customer Satisfaction Survey\",\n    \"question\": \"How would you rate our service?\",\n    \"options\": [\n      \"😍 Excellent\",\n      \"😊 Good\",\n      \"😐 Average\"\n    ],\n    \"footer\": \"Your feedback helps us improve!\"\n  },\n  \"quoted\": null\n}"
+              "raw": "{\n  \"to\": \"923007309179\",\n  \"survey\": {\n    \"title\": \"Customer Satisfaction Survey\",\n    \"question\": \"How would you rate our service?\",\n    \"options\": [\n      \"😍 Excellent\",\n      \"😊 Good\",\n      \"😐 Average\"\n    ],\n    \"footer\": \"Your feedback helps us improve!\"\n  },\n  \"quoted\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/send/survey",

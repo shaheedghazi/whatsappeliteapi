@@ -161,6 +161,19 @@ async function initializeWhatsApp() {
             logger.info('New message received:', JSON.stringify(m, null, 2));
         });
 
+        // Track message receipts and delivery
+        sock.ev.on('message-receipt.update', (update) => {
+            logger.info('Message receipt update:', JSON.stringify(update, null, 2));
+            for (const receipt of update) {
+                console.log(`📬 Message ${receipt.key.id}: ${receipt.receipt.receiptTimestamp ? 'delivered' : 'pending'}`);
+            }
+        });
+
+        // Track presence updates
+        sock.ev.on('presence.update', (update) => {
+            logger.info('Presence update:', JSON.stringify(update, null, 2));
+        });
+
         // Handle authentication failures
         sock.ev.on('CB:xmlstreamend', () => {
             console.log('🔄 Stream ended, reconnecting...');
@@ -541,8 +554,8 @@ app.post('/api/send/interactive/advanced', async (req, res) => {
         
         const interactiveMessage = {
             text: text || "Hello World!",
-            title: title || 'this is the title',
-            footer: footer || 'this is the footer',
+            title: title || "this is the title",
+            footer: footer || "this is the footer",
             interactiveButtons
         };
         
@@ -559,7 +572,7 @@ app.post('/api/send/interactive/advanced', async (req, res) => {
         });
     } catch (error) {
         logger.error('Send advanced interactive error:', error);
-        res.status(500).json({ error: 'Failed to send advanced interactive message' });
+        res.status(500).json({ error: 'Failed to send advanced interactive message: ' + error.message });
     }
 });
 
@@ -578,7 +591,7 @@ app.post('/api/send/interactive/image', async (req, res) => {
         
         const formattedId = formatWhatsAppId(to);
         
-        const interactiveMessage = {
+        const imageInteractiveMessage = {
             image: { url: image },
             caption: caption || "Check out this amazing photo!",
             title: title || 'Photo Showcase',
@@ -586,7 +599,7 @@ app.post('/api/send/interactive/image', async (req, res) => {
             interactiveButtons
         };
         
-        const result = await sock.sendMessage(formattedId, interactiveMessage, { quoted });
+        const result = await sock.sendMessage(formattedId, imageInteractiveMessage, { quoted });
         
         console.log(`🖼️ Rich media interactive image message sent to ${to} with ${interactiveButtons.length} buttons`);
         
@@ -618,15 +631,15 @@ app.post('/api/send/interactive/video', async (req, res) => {
         
         const formattedId = formatWhatsAppId(to);
         
-        const interactiveMessage = {
+        const videoInteractiveMessage = {
             video: { url: video },
             caption: caption || "Watch this awesome video!",
-            title: title || 'Video Showcase',
-            footer: footer || 'Tap a button below',
+            title: title || "Video Showcase",
+            footer: footer || "Tap a button below",
             interactiveButtons
         };
         
-        const result = await sock.sendMessage(formattedId, interactiveMessage, { quoted });
+        const result = await sock.sendMessage(formattedId, videoInteractiveMessage, { quoted });
         
         console.log(`🎬 Rich media interactive video message sent to ${to} with ${interactiveButtons.length} buttons`);
         
@@ -916,68 +929,228 @@ app.post('/api/send/business-card', async (req, res) => {
         });
     } catch (error) {
         logger.error('Send business card error:', error);
-        res.status(500).json({ error: 'Failed to send business card' });
+        res.status(500).json({ error: 'Failed to send business card: ' + error.message });
     }
 });
 
-// Send product catalog
+// Send product catalog (Enhanced with proper structure and debugging)
 app.post('/api/send/catalog', async (req, res) => {
     try {
         if (!isConnected) {
             return res.status(400).json({ error: 'WhatsApp not connected' });
         }
         
-        const { to, products, title = "Our Products", footer = "Choose a product to learn more", quoted = null } = req.body;
+        console.log('📥 Catalog request body:', JSON.stringify(req.body, null, 2));
+        
+        const { to, products, title = "Our Products", footer = "Choose a product to learn more", businessOwnerJid = null, quoted = null } = req.body;
         
         if (!to || !products || !Array.isArray(products)) {
             return res.status(400).json({ error: 'Required fields: to, products (array)' });
         }
         
+        // Ensure proper JID format
         const formattedId = formatWhatsAppId(to);
+        console.log('📱 Sending to JID:', formattedId);
         
-        // Create interactive buttons for each product
-        const productButtons = products.slice(0, 3).map((product, index) => ({
-            name: "quick_reply",
-            buttonParamsJson: JSON.stringify({
-                display_text: `${product.name} - $${product.price}`,
-                id: `product_${index}`
-            })
-        }));
-        
-        // Add a "View All" button if there are more than 3 products
-        if (products.length > 3) {
-            productButtons.push({
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: `View All ${products.length} Products`,
-                    id: "view_all_products"
-                })
-            });
+        // Verify number exists on WhatsApp first
+        try {
+            const numberCheck = await sock.onWhatsApp(formattedId);
+            console.log('🔍 Number check result:', numberCheck);
+            
+            if (!numberCheck[0]?.exists) {
+                return res.status(400).json({ 
+                    error: 'Number does not exist on WhatsApp',
+                    number: formattedId,
+                    checked: numberCheck
+                });
+            }
+        } catch (checkError) {
+            console.warn('⚠️ Could not verify number existence:', checkError.message);
         }
         
-        const catalogMessage = {
-            text: `🛍️ *${title}*\n\n${products.slice(0, 3).map(product => 
-                `📦 *${product.name}*\n💰 $${product.price}\n📝 ${product.description}\n`
-            ).join('\n')}`,
-            title: title,
-            footer: footer,
-            interactiveButtons: productButtons
-        };
+        // If single product with rich media support
+        if (products.length === 1) {
+            const product = products[0];
+            console.log('📦 Processing single product:', product);
+            
+            try {
+                // Build the exact message structure baileys-elite expects
+                const catalogMessage = {
+                    product: {
+                        productImage: product.image ? { url: product.image } : undefined,
+                        productImageCount: product.image ? 1 : 0,
+                        title: product.name || 'Product',
+                        description: product.description || 'Featured product',
+                        currencyCode: product.currency || 'USD',
+                        priceAmount1000: Math.round(parseFloat(product.price || 0) * 1000), // Ensure it's a number
+                        retailerId: product.id || `product_${Date.now()}`,
+                        url: product.url || undefined
+                    },
+                    businessOwnerJid: businessOwnerJid || sock.user?.id?.replace(':37', '') || formattedId,
+                    caption: title,
+                    footer: footer,
+                    media: true
+                };
+                
+                console.log('📤 Sending catalog message:', JSON.stringify(catalogMessage, null, 2));
+                
+                const result = await sock.sendMessage(formattedId, catalogMessage, { quoted });
+                
+                console.log('✅ WhatsApp send result:', JSON.stringify(result, null, 2));
+                console.log(`🛍️ Rich media product catalog sent to ${to}: ${product.name}`);
+                
+                res.json({
+                    success: true,
+                    messageId: result.key.id,
+                    to: formattedId,
+                    type: 'rich_product_catalog',
+                    product: product.name,
+                    whatsappResult: result,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (imageError) {
+                console.warn(`⚠️ Rich media catalog failed for ${product.name}, falling back to text catalog:`, imageError.message);
+                
+                // Fallback to simple text message
+                const fallbackMessage = {
+                    text: `🛍️ *${title}*\n\n📦 *${product.name}*\n💰 ${product.currency || '$'}${product.price}\n📝 ${product.description || 'Featured product'}\n${product.url ? `🌐 ${product.url}` : ''}\n\n${footer}`
+                };
+                
+                console.log('📤 Sending fallback message:', JSON.stringify(fallbackMessage, null, 2));
+                
+                const result = await sock.sendMessage(formattedId, fallbackMessage, { quoted });
+                
+                console.log('✅ Fallback send result:', JSON.stringify(result, null, 2));
+                console.log(`🛍️ Text-only product catalog sent to ${to}: ${product.name} (image failed)`);
+                
+                res.json({
+                    success: true,
+                    messageId: result.key.id,
+                    to: formattedId,
+                    type: 'text_product_catalog',
+                    product: product.name,
+                    fallbackReason: imageError.message,
+                    whatsappResult: result,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        } else {
+            // Multiple products - use simple text format
+            console.log(`📦 Processing ${products.length} products`);
+            
+            const textMessage = {
+                text: `🛍️ *${title}*\n\n${products.slice(0, 5).map((product, index) => 
+                    `${index + 1}. 📦 *${product.name}*\n💰 ${product.currency || '$'}${product.price}\n📝 ${product.description || ''}\n${product.url ? `🌐 ${product.url}` : ''}\n`
+                ).join('\n')}${products.length > 5 ? `\n... and ${products.length - 5} more products` : ''}\n\n${footer}`
+            };
+            
+            console.log('📤 Sending multi-product message:', JSON.stringify(textMessage, null, 2));
+            
+            const result = await sock.sendMessage(formattedId, textMessage, { quoted });
+            
+            console.log('✅ Multi-product send result:', JSON.stringify(result, null, 2));
+            console.log(`🛍️ Multi-product catalog sent to ${to} with ${products.length} products`);
+            
+            res.json({
+                success: true,
+                messageId: result.key.id,
+                to: formattedId,
+                type: 'multi_product_catalog',
+                productsCount: products.length,
+                whatsappResult: result,
+                timestamp: new Date().toISOString()
+            });
+        }
+    } catch (error) {
+        console.error('❌ Catalog send error:', error);
+        logger.error('Send catalog error:', error);
+        res.status(500).json({ 
+            error: 'Failed to send catalog: ' + error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Send media album (Multiple images/videos in grouped message)
+app.post('/api/send/album', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
         
-        const result = await sock.sendMessage(formattedId, catalogMessage, { quoted });
+        const { to, media, delay = 1500, quoted = null } = req.body;
         
-        console.log(`🛍️ Product catalog sent to ${to} with ${products.length} products`);
+        if (!to || !media || !Array.isArray(media) || media.length === 0) {
+            return res.status(400).json({ error: 'Required fields: to, media (array of media objects)' });
+        }
+        
+        if (media.length > 10) {
+            return res.status(400).json({ error: 'Maximum 10 media items allowed per album' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        // Send each media item individually with a small delay to group them
+        const results = [];
+        
+        for (let i = 0; i < media.length; i++) {
+            const item = media[i];
+            let mediaMessage = {};
+            
+            if (item.type === 'image' || item.image) {
+                mediaMessage = {
+                    image: { url: item.image || item.url },
+                    caption: item.caption || ''
+                };
+            } else if (item.type === 'video' || item.video) {
+                mediaMessage = {
+                    video: { url: item.video || item.url },
+                    caption: item.caption || ''
+                };
+            } else {
+                return res.status(400).json({ error: `Invalid media type for item ${i + 1}. Use 'image' or 'video'` });
+            }
+            
+            try {
+                const result = await sock.sendMessage(formattedId, mediaMessage, { quoted });
+                results.push({
+                    index: i + 1,
+                    messageId: result.key.id,
+                    type: item.type || (item.image ? 'image' : 'video'),
+                    status: 'sent'
+                });
+                
+                // Add delay between messages except for the last one
+                if (i < media.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            } catch (error) {
+                results.push({
+                    index: i + 1,
+                    error: error.message,
+                    status: 'failed'
+                });
+            }
+        }
+        
+        const successCount = results.filter(r => r.status === 'sent').length;
+        const failedCount = results.filter(r => r.status === 'failed').length;
+        
+        console.log(`🎥 Media album sent to ${to}: ${successCount}/${media.length} items successful`);
         
         res.json({
-            success: true,
-            messageId: result.key.id,
+            success: successCount > 0,
+            totalItems: media.length,
+            successCount: successCount,
+            failedCount: failedCount,
             to: formattedId,
-            productsCount: products.length,
+            type: 'media_album',
+            results: results,
             timestamp: new Date().toISOString()
         });
     } catch (error) {
-        logger.error('Send catalog error:', error);
-        res.status(500).json({ error: 'Failed to send catalog' });
+        logger.error('Send album error:', error);
+        res.status(500).json({ error: 'Failed to send media album: ' + error.message });
     }
 });
 
@@ -1029,6 +1202,267 @@ app.post('/api/send/survey', async (req, res) => {
     }
 });
 
+// 📱 NEW ENDPOINTS - WhatsApp Features
+
+// Send sticker
+app.post('/api/send/sticker', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, sticker, quoted = null } = req.body;
+        
+        if (!to || !sticker) {
+            return res.status(400).json({ error: 'Required fields: to, sticker' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const stickerMessage = {
+            sticker: { url: sticker }
+        };
+        
+        const result = await sock.sendMessage(formattedId, stickerMessage, { quoted });
+        
+        console.log(`🎯 Sticker sent to ${to}`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'sticker',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send sticker error:', error);
+        res.status(500).json({ error: 'Failed to send sticker' });
+    }
+});
+
+// Send voice note (PTT)
+app.post('/api/send/voice', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, audio, quoted = null } = req.body;
+        
+        if (!to || !audio) {
+            return res.status(400).json({ error: 'Required fields: to, audio' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        const voiceMessage = {
+            audio: { url: audio },
+            mimetype: 'audio/ogg; codecs=opus',
+            ptt: true // This makes it a voice note
+        };
+        
+        const result = await sock.sendMessage(formattedId, voiceMessage, { quoted });
+        
+        console.log(`🎤 Voice note sent to ${to}`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'voice_note',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send voice error:', error);
+        res.status(500).json({ error: 'Failed to send voice note' });
+    }
+});
+
+// Send PDF invoice or document attachment
+app.post('/api/send/document', upload.single('document'), async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, documentUrl, fileName, caption, mimetype, quoted = null } = req.body;
+        const file = req.file;
+        
+        if (!to) {
+            return res.status(400).json({ error: 'Required field: to' });
+        }
+        
+        if (!file && !documentUrl) {
+            return res.status(400).json({ error: 'Either upload a file or provide documentUrl' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        let documentMessage = {};
+        let actualFileName = '';
+        let actualMimetype = '';
+        
+        if (file) {
+            // Handle uploaded file
+            const documentPath = file.path;
+            actualFileName = fileName || file.originalname || 'document.pdf';
+            actualMimetype = mimetype || file.mimetype || 'application/pdf';
+            
+            documentMessage = {
+                document: { url: documentPath },
+                mimetype: actualMimetype,
+                fileName: actualFileName,
+                caption: caption || `📄 ${actualFileName}`
+            };
+        } else if (documentUrl) {
+            // Handle URL-based document
+            actualFileName = fileName || 'document.pdf';
+            actualMimetype = mimetype || 'application/pdf';
+            
+            documentMessage = {
+                document: { url: documentUrl },
+                mimetype: actualMimetype,
+                fileName: actualFileName,
+                caption: caption || `📄 ${actualFileName}`
+            };
+        }
+        
+        const result = await sock.sendMessage(formattedId, documentMessage, { quoted });
+        
+        // Clean up uploaded file if it exists
+        if (file) {
+            fs.unlinkSync(file.path);
+        }
+        
+        console.log(`📄 Document sent to ${to}: ${actualFileName} (${actualMimetype})`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'document',
+            fileName: actualFileName,
+            mimetype: actualMimetype,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send document error:', error);
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ error: 'Failed to send document: ' + error.message });
+    }
+});
+
+// Send PDF invoice (specialized endpoint for invoices)
+app.post('/api/send/invoice', upload.single('invoice'), async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const { to, invoiceUrl, invoiceNumber, customerName, amount, currency = 'USD', quoted = null } = req.body;
+        const file = req.file;
+        
+        if (!to) {
+            return res.status(400).json({ error: 'Required field: to' });
+        }
+        
+        if (!file && !invoiceUrl) {
+            return res.status(400).json({ error: 'Either upload an invoice file or provide invoiceUrl' });
+        }
+        
+        const formattedId = formatWhatsAppId(to);
+        
+        // Generate invoice filename and caption
+        const invoiceFileName = `Invoice_${invoiceNumber || Date.now()}.pdf`;
+        const invoiceCaption = `🧾 **INVOICE**\n\n` +
+            `📋 Invoice: #${invoiceNumber || 'N/A'}\n` +
+            `👤 Customer: ${customerName || 'N/A'}\n` +
+            `💰 Amount: ${currency} ${amount || 'N/A'}\n\n` +
+            `📄 Please find your invoice attached below.`;
+        
+        let documentMessage = {};
+        
+        if (file) {
+            // Handle uploaded invoice file
+            const invoicePath = file.path;
+            
+            documentMessage = {
+                document: { url: invoicePath },
+                mimetype: 'application/pdf',
+                fileName: invoiceFileName,
+                caption: invoiceCaption
+            };
+        } else if (invoiceUrl) {
+            // Handle URL-based invoice
+            documentMessage = {
+                document: { url: invoiceUrl },
+                mimetype: 'application/pdf',
+                fileName: invoiceFileName,
+                caption: invoiceCaption
+            };
+        }
+        
+        const result = await sock.sendMessage(formattedId, documentMessage, { quoted });
+        
+        // Clean up uploaded file if it exists
+        if (file) {
+            fs.unlinkSync(file.path);
+        }
+        
+        console.log(`🧾 Invoice sent to ${to}: ${invoiceFileName} (${currency} ${amount})`);
+        
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to: formattedId,
+            type: 'invoice',
+            invoiceNumber: invoiceNumber,
+            fileName: invoiceFileName,
+            amount: amount,
+            currency: currency,
+            customerName: customerName,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Send invoice error:', error);
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ error: 'Failed to send invoice: ' + error.message });
+    }
+});
+
+// Get current user info (for businessOwnerJid)
+app.get('/api/user/info', async (req, res) => {
+    try {
+        if (!isConnected) {
+            return res.status(400).json({ error: 'WhatsApp not connected' });
+        }
+        
+        const userInfo = {
+            jid: sock.user?.id,
+            businessJid: sock.user?.id?.replace(':37', ''),
+            name: sock.user?.name,
+            pushName: sock.user?.pushName,
+            connectionState: connectionState,
+            isConnected: isConnected
+        };
+        
+        console.log('👤 User info requested:', userInfo);
+        
+        res.json({
+            success: true,
+            user: userInfo,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        logger.error('Get user info error:', error);
+        res.status(500).json({ error: 'Failed to get user info: ' + error.message });
+    }
+});
+
 // Error handling middleware
 app.use((error, req, res, next) => {
     logger.error('Unhandled error:', error);
@@ -1054,25 +1488,43 @@ async function startServer() {
             console.log('📱 WhatsApp API ready for Postman testing!');
             console.log('═'.repeat(60));
             console.log('📋 Available endpoints:');
+            console.log('');
+            console.log('🔗 CONNECTION MANAGEMENT:');
             console.log('   • Health Check: GET /api/health');
             console.log('   • Connection Status: GET /api/status');
             console.log('   • Get QR Code: GET /api/qr');
             console.log('   • Request Pairing Code: POST /api/pair');
+            console.log('   • Logout: POST /api/logout');
+            console.log('');
+            console.log('💬 MESSAGING:');
             console.log('   • Send Text Message: POST /api/send/text');
             console.log('   • Send Media: POST /api/send/media');
+            console.log('   • Send Sticker: POST /api/send/sticker');
+            console.log('   • Send Voice Note: POST /api/send/voice');
+            console.log('   • Send Bulk Messages: POST /api/send/bulk');
+            console.log('   • Send Document: POST /api/send/document');
+            console.log('   • Send Invoice: POST /api/send/invoice');
+            console.log('');
+            console.log('🎛️ INTERACTIVE MESSAGES:');
             console.log('   • Send Text Buttons: POST /api/send/buttons/text');
             console.log('   • Send Image Buttons: POST /api/send/buttons/image');
             console.log('   • Send Video Buttons: POST /api/send/buttons/video');
             console.log('   • Send Advanced Interactive: POST /api/send/interactive/advanced');
             console.log('   • Send Rich Media Interactive Image: POST /api/send/interactive/image');
             console.log('   • Send Rich Media Interactive Video: POST /api/send/interactive/video');
-            console.log('   • Send Bulk Messages: POST /api/send/bulk');
+            console.log('');
+            console.log('📋 SPECIAL CONTENT:');
             console.log('   • Send Contact Card: POST /api/send/contact');
             console.log('   • Send Location: POST /api/send/location');
             console.log('   • Send Reaction: POST /api/send/reaction');
             console.log('   • Send Business Card: POST /api/send/business-card');
             console.log('   • Send Product Catalog: POST /api/send/catalog');
             console.log('   • Send Survey: POST /api/send/survey');
+            console.log('   • Send Media Album: POST /api/send/album');
+            console.log('');
+            console.log('═'.repeat(60));
+            console.log(`📊 Total Endpoints: ${24} available for testing`);
+            console.log('📖 Import Postman collection: Baileys-Elite-API.postman_collection.json');
             console.log('═'.repeat(60));
             
             if (!isConnected && qr) {
