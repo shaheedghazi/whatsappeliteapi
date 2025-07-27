@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatsApp API Client</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 40px auto;
+      max-width: 900px;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+    input, select, button, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+    textarea {
+      font-family: monospace;
+      height: 100px;
+    }
+    #responseBox {
+      white-space: pre-wrap;
+      margin-top: 20px;
+      padding: 15px;
+      background: #f1f1f1;
+      border-left: 4px solid #25D366;
+      font-family: monospace;
+    }
+    button {
+      margin-top: 20px;
+      background: #25D366;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1ebe5d;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>📲 WhatsApp API Client</h1>
+
+  <label for="endpoint">Select Endpoint:</label>
+  <select id="endpoint" onchange="renderForm()">
+    <option value="send/text">Send Text</option>
+    <option value="send/media">Send Media</option>
+    <option value="send/document">Send Document</option>
+    <option value="send/invoice">Send Invoice</option>
+    <option value="send/buttons/text">Send Text Buttons</option>
+    <option value="send/buttons/media">Send Media Buttons</option>
+    <option value="send/catalog">Send Catalog</option>
+    <option value="send/contact">Send Contact</option>
+    <option value="send/location">Send Location</option>
+    <option value="send/voice">Send Voice</option>
+    <option value="qr">Get QR</option>
+    <option value="auth/check">Auth Check</option>
+    <option value="session/logout">Logout Session</option>
+    <option value="send/group">Send to Group</option>
+    <option value="send/group/invite">Send Group Invite</option>
+    <option value="send/group/info">Get Group Info</option>
+  </select>
+
+  <div id="formArea"></div>
+  <button onclick="send()">🚀 Send Request</button>
+  <div id="responseBox">Response will appear here.</div>
+
+  <script>
+    const API_BASE = "http://localhost:3000/api";
+
+    function renderForm() {
+      const endpoint = document.getElementById('endpoint').value;
+      const formArea = document.getElementById('formArea');
+      formArea.innerHTML = '';
+
+      const basicInput = (label, id, value = '') => `
+        <label>${label}</label>
+        <input type="text" id="${id}" value="${value}">
+      `;
+
+      const area = (label, id, value = '') => `
+        <label>${label}</label>
+        <textarea id="${id}">${value}</textarea>
+      `;
+
+      switch (endpoint) {
+        case 'send/text':
+          formArea.innerHTML = basicInput('To (number)', 'to') + area('Text Message', 'text');
+          break;
+        case 'send/media':
+          formArea.innerHTML = basicInput('To', 'to') + basicInput('Type (image/video/audio)', 'type') + basicInput('Caption', 'caption') + '<label>Media File</label><input type="file" id="media">';
+          break;
+        case 'send/document':
+        case 'send/invoice':
+          formArea.innerHTML = basicInput('To', 'to') + '<label>Document</label><input type="file" id="media">';
+          break;
+        case 'send/buttons/text':
+          formArea.innerHTML = basicInput('To', 'to') + area('Text', 'text') + area('Buttons JSON Array', 'buttons', '[{"buttonId": "id1", "buttonText": {"displayText": "Yes"}, "type": 1}]');
+          break;
+        case 'send/buttons/media':
+          formArea.innerHTML = basicInput('To', 'to') + '<label>Media File</label><input type="file" id="media">' + area('Caption', 'caption') + area('Buttons JSON Array', 'buttons');
+          break;
+        case 'send/catalog':
+          formArea.innerHTML = basicInput('To', 'to') + area('Catalog JSON', 'catalog');
+          break;
+        case 'send/contact':
+          formArea.innerHTML = basicInput('To', 'to') + area('Contact JSON', 'contact');
+          break;
+        case 'send/location':
+          formArea.innerHTML = basicInput('To', 'to') + basicInput('Latitude', 'lat') + basicInput('Longitude', 'lng') + basicInput('Name', 'name') + basicInput('Address', 'addr');
+          break;
+        case 'send/voice':
+          formArea.innerHTML = basicInput('To', 'to') + '<label>Voice File</label><input type="file" id="media">';
+          break;
+        case 'send/group':
+          formArea.innerHTML = basicInput('Group ID', 'group') + area('Message', 'text');
+          break;
+        case 'send/group/invite':
+          formArea.innerHTML = basicInput('Group ID', 'group');
+          break;
+        case 'send/group/info':
+          formArea.innerHTML = basicInput('Group ID', 'group');
+          break;
+        case 'qr':
+        case 'auth/check':
+        case 'session/logout':
+          formArea.innerHTML = '<p>No parameters needed for this endpoint.</p>';
+          break;
+      }
+    }
+
+    renderForm();
+
+    async function send() {
+      const endpoint = document.getElementById('endpoint').value;
+      const url = `${API_BASE}/${endpoint}`;
+      const formData = new FormData();
+      const headers = {};
+      let body = {};
+      let isFileUpload = false;
+
+      // Collect fields dynamically
+      if (document.getElementById('to')) body.to = document.getElementById('to').value;
+      if (document.getElementById('text')) body.text = document.getElementById('text').value;
+      if (document.getElementById('type')) body.type = document.getElementById('type').value;
+      if (document.getElementById('caption')) body.caption = document.getElementById('caption').value;
+      if (document.getElementById('buttons')) body.buttons = JSON.parse(document.getElementById('buttons').value || '[]');
+      if (document.getElementById('catalog')) body.products = JSON.parse(document.getElementById('catalog').value || '[]');
+      if (document.getElementById('contact')) body.contact = JSON.parse(document.getElementById('contact').value || '{}');
+      if (document.getElementById('lat')) body.latitude = parseFloat(document.getElementById('lat').value);
+      if (document.getElementById('lng')) body.longitude = parseFloat(document.getElementById('lng').value);
+      if (document.getElementById('name')) body.name = document.getElementById('name').value;
+      if (document.getElementById('addr')) body.address = document.getElementById('addr').value;
+      if (document.getElementById('group')) body.group = document.getElementById('group').value;
+
+      const fileInput = document.getElementById('media');
+      if (fileInput && fileInput.files.length > 0) {
+        isFileUpload = true;
+        formData.append('media', fileInput.files[0]);
+        for (const key in body) formData.append(key, typeof body[key] === 'object' ? JSON.stringify(body[key]) : body[key]);
+      }
+
+      document.getElementById('responseBox').innerText = '⏳ Sending...';
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: isFileUpload ? undefined : { 'Content-Type': 'application/json' },
+          body: isFileUpload ? formData : JSON.stringify(body)
+        });
+        const data = await response.json();
+        document.getElementById('responseBox').innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('responseBox').innerText = '❌ ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
